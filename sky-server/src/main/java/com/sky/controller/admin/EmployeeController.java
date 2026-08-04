@@ -1,6 +1,7 @@
 package com.sky.controller.admin;
 
 import com.sky.constant.JwtClaimsConstant;
+import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.entity.Employee;
 import com.sky.properties.JwtProperties;
@@ -24,7 +25,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/admin/employee")
 @Slf4j
-public class EmployeeController {
+public class  EmployeeController {
 
     @Autowired
     private EmployeeService employeeService;
@@ -71,4 +72,27 @@ public class EmployeeController {
         return Result.success();
     }
 
+
+    /**
+     * 新增员工
+     * @param employeeDTO
+     * @return
+     */
+    @PostMapping
+    public Result save(@RequestBody EmployeeDTO employeeDTO){
+        employeeService.save(employeeDTO);
+        return Result.success();
+    }
+
+    /**
+     * 分页查询
+     * @param page
+     * @param pageSize
+     * @param name
+     * @return
+     */
+    @PostMapping("/page")
+    public Result page(Integer page, Integer pageSize, String name){
+        return Result.success(employeeService.page(page, pageSize, name));
+    }
 }
