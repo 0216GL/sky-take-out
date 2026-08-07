@@ -3,9 +3,14 @@ package com.sky.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sky.dto.CategoryDTO;
+import com.sky.dto.CategoryPageQueryDTO;
 import com.sky.entity.Category;
+import com.sky.entity.Dish;
+import com.sky.entity.Setmeal;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.CategoryMapper;
+import com.sky.mapper.DishMapper;
+import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.service.CategoryService;
 import org.springframework.beans.BeanUtils;
@@ -20,21 +25,29 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private CategoryMapper categoryMapper;
 
+    @Autowired
+    private DishMapper dishMapper;
+
+    @Autowired
+    private SetmealMapper setmealMapper;
     /**
      * 分类分页查询
-     * @param page
-     * @param pageSize
-     * @param name
-     * @param type
      * @return
      */
     @Override
-    public PageResult page(Integer page, Integer pageSize, String name, String type) {
+    public Object page(CategoryPageQueryDTO categoryPageQueryDTO) {
+        String name = categoryPageQueryDTO.getName();
+        Integer type = categoryPageQueryDTO.getType();
+        Integer pageSize = categoryPageQueryDTO.getPageSize();
+        Integer page = categoryPageQueryDTO.getPage();
+        Long id = categoryPageQueryDTO.getCategoryId();
+
         Page<Category> pageParam = new Page<>(page, pageSize);
 
         LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(name != null, Category::getName, name);
         queryWrapper.eq(type != null, Category::getType, type);
+        queryWrapper.eq(id != null, Category::getId, id);
         queryWrapper.orderByDesc(Category::getSort);
 
         categoryMapper.selectPage(pageParam, queryWrapper);
@@ -75,7 +88,18 @@ public class CategoryServiceImpl implements CategoryService {
         if (!Integer.valueOf(0).equals(category.getStatus())) {
             throw new DeletionNotAllowedException("当前分类为启用状态，不能删除");
         }
-//        TODO
+        Integer type = category.getType();
+        if (type == 1) {
+            Long count = dishMapper.selectCount(new LambdaQueryWrapper<Dish>().eq(Dish::getCategoryId, id));
+            if (count > 0) {
+                throw new DeletionNotAllowedException("当前分类关联了菜品，不能删除");
+            }
+        }else{
+            Long count = setmealMapper.selectCount(new LambdaQueryWrapper<Setmeal>().eq(Setmeal::getCategoryId, id));
+            if (count > 0) {
+                throw new DeletionNotAllowedException("当前分类关联了套餐，不能删除");
+            }
+        }
         categoryMapper.deleteById(id);
     }
 

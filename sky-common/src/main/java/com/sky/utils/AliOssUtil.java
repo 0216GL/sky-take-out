@@ -65,4 +65,27 @@ public class AliOssUtil {
 
         return stringBuilder.toString();
     }
+
+    /**
+     * 删除文件
+     *
+     * @param objectName 文件在OSS中的objectName（即文件名）
+     */
+    public void delete(String objectName) {
+        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+        try {
+            ossClient.deleteObject(bucketName, objectName);
+            log.info("文件删除成功：{}", objectName);
+        } catch (OSSException oe) {
+            log.error("删除OSS文件失败，错误码：{}，错误信息：{}", oe.getErrorCode(), oe.getErrorMessage());
+            throw new RuntimeException("删除文件失败：" + oe.getErrorMessage(), oe);
+        } catch (ClientException ce) {
+            log.error("删除OSS文件时客户端异常：{}", ce.getMessage());
+            throw new RuntimeException("删除文件失败：" + ce.getMessage(), ce);
+        } finally {
+            if (ossClient != null) {
+                ossClient.shutdown();
+            }
+        }
+    }
 }

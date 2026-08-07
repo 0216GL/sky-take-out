@@ -6,6 +6,7 @@ import com.sky.entity.Employee;
 import com.sky.entity.Setmeal;
 import com.sky.enumeration.OperationType;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface SetmealMapper extends BaseMapper<Setmeal> {
@@ -16,5 +17,5 @@ public interface SetmealMapper extends BaseMapper<Setmeal> {
 
     @Override
     @AutoFill(OperationType.UPDATE)
-    int updateById(Setmeal setmeal);
+    int updateById(@Param("et") Setmeal setmeal);
 }

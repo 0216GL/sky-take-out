@@ -7,9 +7,11 @@ import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Category;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.entity.SetmealDish;
 import com.sky.mapper.CategoryMapper;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
+import com.sky.mapper.SetmealDishMapper;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.DishService;
@@ -17,7 +19,9 @@ import com.sky.vo.DishVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +38,8 @@ public class DishServiceImpl implements DishService {
     @Autowired
     private CategoryMapper categoryMapper;
 
+    @Autowired
+    private SetmealDishMapper setmealDishMapper;
     /**
      * 菜品查询
      */
@@ -126,6 +132,51 @@ public class DishServiceImpl implements DishService {
             }
         }
         return Result.success();
+    }
+
+    /**
+     * 删除菜品
+     */
+    @Override
+    @Transactional
+    public void delete(List<Long> ids) {
+
+        List<Dish> dishes = dishMapper.selectBatchIds(ids);
+        for (Dish dish : dishes){
+            if(dish.getStatus() == 1){
+                throw new RuntimeException("当前有菜品正在起售中，不能删除");
+            }
+        }
+
+        Long count =setmealDishMapper.selectCount(new LambdaQueryWrapper<SetmealDish>().in(SetmealDish::getDishId, ids));
+        if(count > 0){
+            throw new RuntimeException("当前有菜品在套餐中，不能删除");
+        }
+
+        try {
+            dishFlavorMapper.delete(new LambdaQueryWrapper<DishFlavor>().in(DishFlavor::getDishId, ids));
+        } catch (Exception e) {
+            throw new RuntimeException("删除菜品口味失败");
+        }
+
+        dishMapper.deleteBatchIds(ids);
+
+
+    }
+
+    /**
+     * 获取菜品列表
+     */
+    @Override
+    public List<DishVO> list(Long categoryId) {
+        List<DishVO> dishVOList = new ArrayList<>();
+        List<Dish> dishes = dishMapper.selectList(new LambdaQueryWrapper<Dish>().eq(Dish::getCategoryId, categoryId));
+        for(Dish dish : dishes){
+            DishVO dishVO = new DishVO();
+            BeanUtils.copyProperties(dish, dishVO);
+            dishVOList.add(dishVO);
+        }
+        return dishVOList;
     }
 
 }

@@ -1,5 +1,7 @@
 package com.sky.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.sky.entity.SetmealDish;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,9 +19,11 @@ import java.util.List;
 @AllArgsConstructor
 public class SetmealVO implements Serializable {
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     //分类id
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long categoryId;
 
     //套餐名称

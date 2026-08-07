@@ -4,6 +4,9 @@ import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.result.PageResult;
+import com.sky.vo.DishVO;
+
+import java.util.List;
 
 public interface DishService {
     /**
@@ -30,4 +33,14 @@ public interface DishService {
      * 新增菜品
      */
     Object save(DishDTO dishDTO);
+
+    /**
+     * 删除菜品
+     */
+    void delete(List<Long> ids);
+
+    /**
+     * 根据分类id查询菜品
+     */
+    List<DishVO> list(Long categoryId);
 }

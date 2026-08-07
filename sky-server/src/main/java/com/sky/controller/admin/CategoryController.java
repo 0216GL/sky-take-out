@@ -2,6 +2,7 @@ package com.sky.controller.admin;
 
 
 import com.sky.dto.CategoryDTO;
+import com.sky.dto.CategoryPageQueryDTO;
 import com.sky.result.Result;
 import com.sky.service.CategoryService;
 import lombok.extern.slf4j.Slf4j;
@@ -23,14 +24,10 @@ public class CategoryController {
 
     /**
      *  分类分页查询
-     *  @param page
-     *  @param pageSize
-     *  @param name
-     *  @param type
      */
     @GetMapping("page")
-    public Result page(Integer page, Integer pageSize, String name, String type){
-        return Result.success(categoryService.page(page, pageSize, name, type));
+    public Result page(CategoryPageQueryDTO categoryPageQueryDTO){
+        return Result.success(categoryService.page(categoryPageQueryDTO));
     }
 
     /**
@@ -57,20 +54,25 @@ public class CategoryController {
 
     /**
      * 删除分类
-     * @param id
-     * @return
      */
     @DeleteMapping
     public Result delete(@RequestParam Long id){
-        categoryService.delete(id);
+        try {
+            categoryService.delete(id);
+        } catch (Exception e) {
+            if(e.getMessage() .equals("当前分类关联了套餐，不能删除"))
+            return Result.error("当前分类关联了套餐，不能删除");
+            else if(e.getMessage() .equals("当前分类关联了菜品，不能删除"))
+            return Result.error("当前分类关联了菜品，不能删除");
+            else if(e.getMessage() .equals("当前分类为启用状态，不能删除"))
+            return Result.error("当前分类为启用状态，不能删除");
+            return Result.error("未知错误");
+        }
         return Result.success();
     }
 
     /**
      * 启用禁用分类
-     * @param status
-     * @param id
-     * @return
      */
     @PostMapping ("/status/{status}")
     public Result startOrStop(@PathVariable Integer status, Long id){

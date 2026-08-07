@@ -1,5 +1,7 @@
 package com.sky.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -19,4 +21,7 @@ public class CategoryPageQueryDTO implements Serializable {
     //分类类型 1菜品分类  2套餐分类
     private Integer type;
 
+    //套餐分类
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long categoryId;
 }

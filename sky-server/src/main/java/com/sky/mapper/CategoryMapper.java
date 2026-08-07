@@ -6,6 +6,7 @@ import com.sky.entity.Category;
 import com.sky.entity.Employee;
 import com.sky.enumeration.OperationType;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface CategoryMapper extends BaseMapper<Category> {
@@ -16,5 +17,5 @@ public interface CategoryMapper extends BaseMapper<Category> {
 
     @Override
     @AutoFill(OperationType.UPDATE)
-    int updateById(Category category);
+    int updateById(@Param("et") Category category);
 }

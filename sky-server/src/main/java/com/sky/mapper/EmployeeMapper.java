@@ -5,6 +5,7 @@ import com.sky.annotation.AutoFill;
 import com.sky.entity.Employee;
 import com.sky.enumeration.OperationType;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 @Mapper
@@ -19,5 +20,5 @@ public interface EmployeeMapper extends BaseMapper<Employee> {
 
     @Override
     @AutoFill(OperationType.UPDATE)
-    int updateById(Employee employee);
+    int updateById(@Param("et") Employee employee);
 }

@@ -2,13 +2,16 @@ package com.sky.controller.admin;
 
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
-import com.sky.entity.Dish;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.DishService;
+import com.sky.vo.DishVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 
 @RestController
 @Slf4j
@@ -59,4 +62,34 @@ public class DishController {
     public Result save(@RequestBody DishDTO dishDTO) {
         return Result.success(dishService.save(dishDTO));
     }
+
+    /**
+     * 批量删除菜品
+     */
+    @DeleteMapping
+    public Result delete(@RequestParam List<Long> ids) {
+        try {
+            dishService.delete(ids);
+        } catch (Exception e) {
+            if (e.getMessage().equals("当前有菜品正在起售中，不能删除"))
+                return Result.error("当前有菜品正在起售中，不能删除");
+            else if (e.getMessage().equals("当前有菜品在套餐中，不能删除"))
+                return Result.error("当前有菜品在套餐中，不能删除");
+            else if(e.getMessage().equals("删除菜品口味失败"))
+                return Result.error("删除菜品口味失败");
+            return Result.error("未知错误");
+        }
+        dishService.delete(ids);
+        return Result.success();
+    }
+
+    /**
+     * 获取指定分类下的菜品
+     */
+    @GetMapping("/list")
+    public Result<List<DishVO>> list(Long categoryId) {
+        return Result.success(dishService.list(categoryId));
+    }
+
+
 }
