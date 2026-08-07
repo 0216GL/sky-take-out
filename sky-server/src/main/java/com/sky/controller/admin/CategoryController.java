@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.awt.*;
+
 /**
  * 分类管理
  */
@@ -76,5 +78,12 @@ public class CategoryController {
         return Result.success();
     }
 
+    /**
+     * 查询分类
+     */
+    @GetMapping("list")
+    public Result list(Integer type){
+        return Result.success(categoryService.list(type));
+    }
 
 }

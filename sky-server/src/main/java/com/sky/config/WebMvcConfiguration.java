@@ -2,6 +2,8 @@ package com.sky.config;
 
 import com.sky.interceptor.JwtTokenAdminInterceptor;
 import com.sky.json.JacksonObjectMapper;
+import com.sky.properties.AliOssProperties;
+import com.sky.utils.AliOssUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +31,20 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 
     @Autowired
     private JwtTokenAdminInterceptor jwtTokenAdminInterceptor;
+
+    /**
+     * 创建阿里云OSS工具类对象
+     */
+    @Bean
+    public AliOssUtil aliOssUtil(AliOssProperties aliOssProperties) {
+        log.info("开始创建阿里云文件上传工具类对象：{}", aliOssProperties);
+        return new AliOssUtil(
+                aliOssProperties.getEndpoint(),
+                aliOssProperties.getAccessKeyId(),
+                aliOssProperties.getAccessKeySecret(),
+                aliOssProperties.getBucketName()
+        );
+    }
 
     /**
      * 注册自定义拦截器

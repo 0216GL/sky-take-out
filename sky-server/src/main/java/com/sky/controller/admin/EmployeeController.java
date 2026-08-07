@@ -6,12 +6,14 @@ import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.PasswordEditDTO;
 import com.sky.entity.Employee;
 import com.sky.properties.JwtProperties;
+import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.EmployeeService;
 import com.sky.utils.JwtUtil;
 import com.sky.vo.EmployeeLoginVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -33,8 +35,6 @@ public class  EmployeeController {
     /**
      * 登录
      *
-     * @param employeeLoginDTO
-     * @return
      */
     @PostMapping("/login")
     public Result<EmployeeLoginVO> login(@RequestBody EmployeeLoginDTO employeeLoginDTO) {
@@ -73,8 +73,6 @@ public class  EmployeeController {
 
     /**
      * 新增员工
-     * @param employeeDTO
-     * @return
      */
     @PostMapping
     public Result save(@RequestBody EmployeeDTO employeeDTO){
@@ -84,13 +82,9 @@ public class  EmployeeController {
 
     /**
      * 分页查询
-     * @param page
-     * @param pageSize
-     * @param name
-     * @return
      */
     @GetMapping("/page")
-    public Result page(Integer page, Integer pageSize, String name){
+    public Result<PageResult> page(Integer page, Integer pageSize, String name){
         return Result.success(employeeService.page(page, pageSize, name));
     }
 
@@ -123,7 +117,7 @@ public class  EmployeeController {
      * @return
      */
     @PutMapping
-    public Result update(@RequestBody EmployeeDTO employeeDTO){
+    public Result<String> update(@RequestBody EmployeeDTO employeeDTO){
         employeeService.update(employeeDTO);
         return Result.success();
     }
@@ -135,7 +129,7 @@ public class  EmployeeController {
      * @return
      */
     @PutMapping("editPassword")
-    public Result editPassword(@RequestBody PasswordEditDTO passwordEditDTO){
+    public Result<String> editPassword(@RequestBody PasswordEditDTO passwordEditDTO){
         try{
             employeeService.editPassword(passwordEditDTO);
         } catch (Exception e) {

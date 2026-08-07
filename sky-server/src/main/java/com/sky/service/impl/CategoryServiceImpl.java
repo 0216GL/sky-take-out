@@ -12,8 +12,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
-public class CategoryServicelmpl implements CategoryService {
+public class CategoryServiceImpl implements CategoryService {
 
     @Autowired
     private CategoryMapper categoryMapper;
@@ -59,6 +61,7 @@ public class CategoryServicelmpl implements CategoryService {
     public void save(CategoryDTO categoryDTO) {
         Category category = new Category();
         BeanUtils.copyProperties(categoryDTO, category);
+        category.setStatus(1);
         categoryMapper.insert(category);
     }
 
@@ -87,6 +90,18 @@ public class CategoryServicelmpl implements CategoryService {
         category.setStatus(status);
         category.setId(id);
         categoryMapper.updateById(category);
+    }
+
+    /**
+     * 查询分类
+     */
+    @Override
+    public List<Category> list(Integer type) {
+        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(type != null, Category::getType, type);
+        queryWrapper.orderByAsc(Category::getSort);
+        List<Category> list = categoryMapper.selectList(queryWrapper);
+        return list;
     }
 
 

@@ -80,11 +80,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         employee.setPassword(DigestUtils.md5DigestAsHex("123456".getBytes()));
         employee.setStatus(StatusConstant.ENABLE);
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
-
-        employee.setCreateUser(BaseContext.getCurrentId());
-        employee.setUpdateUser(BaseContext.getCurrentId());
 
         employeeMapper.insert(employee);
     }
