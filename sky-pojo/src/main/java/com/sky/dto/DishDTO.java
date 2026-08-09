@@ -1,5 +1,7 @@
 package com.sky.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.sky.entity.DishFlavor;
 import lombok.Data;
 import java.io.Serializable;
@@ -10,10 +12,12 @@ import java.util.List;
 @Data
 public class DishDTO implements Serializable {
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     //菜品名称
     private String name;
     //菜品分类id
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long categoryId;
     //菜品价格
     private BigDecimal price;

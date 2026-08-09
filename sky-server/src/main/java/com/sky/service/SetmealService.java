@@ -39,4 +39,9 @@ public interface SetmealService {
      * 套餐起售、停售
      */
     void startOrStop(Integer status, Long id);
+
+    /**
+     * 获取指定分类下的套餐
+     */
+    List<SetmealVO> list(Long categoryId);
 }

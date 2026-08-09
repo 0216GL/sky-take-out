@@ -1,5 +1,7 @@
 package com.sky.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import java.io.Serializable;
 
@@ -7,7 +9,9 @@ import java.io.Serializable;
 public class ShoppingCartDTO implements Serializable {
 
     private Long dishId;
+
     private Long setmealId;
+
     private String dishFlavor;
 
 }

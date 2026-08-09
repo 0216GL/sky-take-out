@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -169,14 +170,31 @@ public class DishServiceImpl implements DishService {
      */
     @Override
     public List<DishVO> list(Long categoryId) {
-        List<DishVO> dishVOList = new ArrayList<>();
-        List<Dish> dishes = dishMapper.selectList(new LambdaQueryWrapper<Dish>().eq(Dish::getCategoryId, categoryId));
-        for(Dish dish : dishes){
+        List<Dish> dishes = dishMapper.selectList(
+                new LambdaQueryWrapper<Dish>()
+                        .eq(Dish::getCategoryId, categoryId)
+                        .eq(Dish::getStatus, 1));
+
+        if (dishes.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Long> dishIds = dishes.stream()
+                .map(Dish::getId)
+                .collect(Collectors.toList());
+
+        List<DishFlavor> dishFlavors = dishFlavorMapper.selectList(
+                new LambdaQueryWrapper<DishFlavor>().in(DishFlavor::getDishId, dishIds));
+
+        Map<Long, List<DishFlavor>> dishFlavorMap = dishFlavors.stream()
+                .collect(Collectors.groupingBy(DishFlavor::getDishId));
+
+        return dishes.stream().map(dish -> {
             DishVO dishVO = new DishVO();
             BeanUtils.copyProperties(dish, dishVO);
-            dishVOList.add(dishVO);
-        }
-        return dishVOList;
+            dishVO.setFlavors(dishFlavorMap.getOrDefault(dish.getId(), Collections.emptyList()));
+            return dishVO;
+        }).collect(Collectors.toList());
     }
 
 }

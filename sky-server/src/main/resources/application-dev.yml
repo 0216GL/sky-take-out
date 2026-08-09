@@ -12,3 +12,13 @@ sky:
     access-key-id: LTAI5t5tBiGFQjHWKHpCr46d
     access-key-secret: FG95R8eeAZQ26fgD4QmB9FPHBc7n2V
     bucket-name: ymzg-use-this
+
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+
+  wechat:
+    appid: wx6d88ec72288c3d0d
+    secret: 2311799ab7bbf179808de8cd14de2829

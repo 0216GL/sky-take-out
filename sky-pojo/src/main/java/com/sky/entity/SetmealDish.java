@@ -1,5 +1,7 @@
 package com.sky.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,12 +21,15 @@ public class SetmealDish implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     //套餐id
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long setmealId;
 
     //菜品id
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long dishId;
 
     //菜品名称 （冗余字段）
@@ -35,4 +40,5 @@ public class SetmealDish implements Serializable {
 
     //份数
     private Integer copies;
+
 }

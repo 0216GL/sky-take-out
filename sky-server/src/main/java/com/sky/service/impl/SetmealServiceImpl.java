@@ -21,7 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -170,5 +172,31 @@ public class SetmealServiceImpl implements SetmealService {
                 .build();
         setmealMapper.updateById(setmeal);
 
+    }
+
+    /**
+     * 根据分类id查询启售中的套餐列表
+     */
+    @Override
+    public List<SetmealVO> list(Long categoryId) {
+        List<Setmeal> setmeals = setmealMapper.selectList(new LambdaQueryWrapper<Setmeal>()
+                .eq(Setmeal::getCategoryId, categoryId)
+                .eq(Setmeal::getStatus, 1));
+
+        if (setmeals.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Long> setmealIds = setmeals.stream().map(Setmeal::getId).collect(Collectors.toList());
+        List<SetmealDish> setmealDishes = setmealDishMapper.selectList(new LambdaQueryWrapper<SetmealDish>()
+                .in(SetmealDish::getSetmealId, setmealIds));
+        Map<Long, List<SetmealDish>> dishMap = setmealDishes.stream().collect(Collectors.groupingBy(SetmealDish::getSetmealId));
+
+        return setmeals.stream().map(setmeal -> {
+            SetmealVO setmealVO = new SetmealVO();
+            BeanUtils.copyProperties(setmeal, setmealVO);
+            setmealVO.setSetmealDishes(dishMap.getOrDefault(setmeal.getId(), Collections.emptyList()));
+            return setmealVO;
+        }).collect(Collectors.toList());
     }
 }
