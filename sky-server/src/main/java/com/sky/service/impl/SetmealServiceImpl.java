@@ -18,6 +18,9 @@ import com.sky.utils.AliOssUtil;
 import com.sky.vo.SetmealVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,9 +44,7 @@ public class SetmealServiceImpl implements SetmealService {
     @Autowired
     private AliOssUtil aliOssUtil;
 
-    /**
-     * 分页查询
-     */
+
     @Override
     public PageResult page(SetmealPageQueryDTO setmealPageQueryDTO) {
         Page<Setmeal> page = new Page<>(setmealPageQueryDTO.getPage(), setmealPageQueryDTO.getPageSize());
@@ -74,6 +75,7 @@ public class SetmealServiceImpl implements SetmealService {
      * 新增套餐
      */
     @Override
+    @CacheEvict(value = "setmeal", allEntries = true)
     public void save(SetmealDTO setmealDTO) {
         Setmeal setmeal = new Setmeal();
 
@@ -84,36 +86,45 @@ public class SetmealServiceImpl implements SetmealService {
         for (SetmealDish dish : setmealDTO.getSetmealDishes()){
             setmealDishMapper.insert(dish);
         }
+
     }
 
-    /**
-     * 根据id查询套餐及关联菜品
-     */
     @Override
     public SetmealVO getByIdWithDish(Long id) {
-        Setmeal setmeal = setmealMapper.selectById(id);
-        if (setmeal == null) {
-            throw new BaseException("套餐不存在");
-        }
-        List<SetmealDish> setmealDishes = setmealDishMapper.selectList(
-                new LambdaQueryWrapper<SetmealDish>().eq(SetmealDish::getSetmealId, id));
-        SetmealVO setmealVO = new SetmealVO();
-        BeanUtils.copyProperties(setmeal, setmealVO);
-        if (setmeal.getCategoryId() != null) {
-            Category category = categoryMapper.selectById(setmeal.getCategoryId());
-            if (category != null) {
-                setmealVO.setCategoryName(category.getName());
-            }
-        }
-        setmealVO.setSetmealDishes(setmealDishes);
-        return setmealVO;
+        return null;
     }
+
+//    /**
+//     * 根据id查询套餐及关联菜品
+//     */
+//    @Override
+//    public SetmealVO getByIdWithDish(Long id) {
+//        Setmeal setmeal = setmealMapper.selectById(id);
+//        if (setmeal == null) {
+//            throw new BaseException("套餐不存在");
+//        }
+//        List<SetmealDish> setmealDishes = setmealDishMapper.selectList(
+//                new LambdaQueryWrapper<SetmealDish>()
+//                        .eq(SetmealDish::getSetmealId, id));
+//
+//        SetmealVO setmealVO = new SetmealVO();
+//        BeanUtils.copyProperties(setmeal, setmealVO);
+//        if (setmeal.getCategoryId() != null) {
+//            Category category = categoryMapper.selectById(setmeal.getCategoryId());
+//            if (category != null) {
+//                setmealVO.setCategoryName(category.getName());
+//            }
+//        }
+//        setmealVO.setSetmealDishes(setmealDishes);
+//        return setmealVO;
+//    }
 
 
     /**
      * 修改套餐
      */
     @Override
+    @CacheEvict(value = "setmeal", allEntries = true)
     public void update(SetmealDTO setmealDTO) {
         Setmeal setmeal = new Setmeal();
         BeanUtils.copyProperties(setmealDTO, setmeal);
@@ -134,6 +145,7 @@ public class SetmealServiceImpl implements SetmealService {
      */
     @Override
     @Transactional
+    @CacheEvict(value = "setmeal", allEntries = true)
     public void delete(List<Long> ids) {
         List<Setmeal> setmeals = setmealMapper.selectBatchIds(ids);
         for (Setmeal setmeal : setmeals) {
@@ -164,6 +176,7 @@ public class SetmealServiceImpl implements SetmealService {
      * 批量起售停售
      */
     @Override
+    @CacheEvict(value = "setmeal", allEntries = true)
     public void startOrStop(Integer status, Long id) {
 
         Setmeal setmeal = Setmeal.builder()
@@ -178,6 +191,7 @@ public class SetmealServiceImpl implements SetmealService {
      * 根据分类id查询启售中的套餐列表
      */
     @Override
+    @Cacheable(value = "setmeal", key = "#categoryId")
     public List<SetmealVO> list(Long categoryId) {
         List<Setmeal> setmeals = setmealMapper.selectList(new LambdaQueryWrapper<Setmeal>()
                 .eq(Setmeal::getCategoryId, categoryId)

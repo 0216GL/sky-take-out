@@ -22,3 +22,9 @@ sky:
   wechat:
     appid: wx6d88ec72288c3d0d
     secret: 2311799ab7bbf179808de8cd14de2829
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
