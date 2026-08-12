@@ -14,6 +14,12 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        <!-- MyBatis-Plus注解（@TableField等），供实体类标记非数据库字段 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-annotation</artifactId>
+            <version>${mybatis.plus}</version>
+        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -33,4 +39,5 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
+
 </project>

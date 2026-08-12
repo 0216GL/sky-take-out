@@ -1,5 +1,8 @@
 package com.sky.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 订单
@@ -37,6 +41,7 @@ public class Orders implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     //订单号
@@ -107,4 +112,8 @@ public class Orders implements Serializable {
 
     //餐具数量状态  1按餐量提供  0选择具体数量
     private Integer tablewareStatus;
+
+    //订单明细（非数据库字段，供前端回显菜品列表）
+    @TableField(exist = false)
+    private List<OrderDetail> orderDetailList;
 }

@@ -1,6 +1,5 @@
 package com.sky.controller.user;
 
-import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
