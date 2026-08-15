@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 数据概览
@@ -16,14 +17,19 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class BusinessDataVO implements Serializable {
 
-    private Double turnover;//营业额
+    /** 营业额（金额用 BigDecimal 保证精度） */
+    private BigDecimal turnover;
 
-    private Integer validOrderCount;//有效订单数
+    /** 有效订单数 */
+    private Integer validOrderCount;
 
-    private Double orderCompletionRate;//订单完成率
+    /** 订单完成率 */
+    private Double orderCompletionRate;
 
-    private Double unitPrice;//平均客单价
+    /** 平均客单价（金额用 BigDecimal 保证精度） */
+    private BigDecimal unitPrice;
 
-    private Integer newUsers;//新增用户数
+    /** 新增用户数 */
+    private Integer newUsers;
 
 }

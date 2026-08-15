@@ -34,6 +34,21 @@ public interface OrderService {
     PageResult historyOrders(int page, int pageSize, String status);
 
     /**
+     * 用户查询订单详情（含订单明细）
+     */
+    OrderVO userOrderDetail(Long id);
+
+    /**
+     * 用户再来一单：把历史订单的菜品重新加入购物车
+     */
+    void repetition(Long id);
+
+    /**
+     * 用户催单：向管理端推送催单消息
+     */
+    void reminder(Long id);
+
+    /**
      * 订单分页查询
      */
     PageResult pageQuery(OrdersPageQueryDTO ordersPageQueryDTO);
@@ -67,4 +82,9 @@ public interface OrderService {
      * 派送订单
      */
     void delivery(Long id);
+
+    /**
+     * 完成订单
+     */
+    void complete(Long id);
 }

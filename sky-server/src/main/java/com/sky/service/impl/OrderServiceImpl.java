@@ -16,6 +16,7 @@ import com.sky.entity.Orders;
 import com.sky.entity.ShoppingCart;
 import com.sky.exception.OrderBusinessException;
 import com.sky.mapper.AddressBookMapper;
+import com.sky.mapper.MessageMapper;
 import com.sky.mapper.OrderDetailMapper;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.ShoppingCartMapper;
@@ -53,6 +54,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private WebSocketServer webSocketServer;
+
+    @Autowired
+    private MessageMapper messageMapper;
 
     /**
      * 用户下单
@@ -143,6 +147,16 @@ public class OrderServiceImpl implements OrderService {
         String json = JSON.toJSONString(map);
         webSocketServer.sendToAllClient(json);
 
+        // 同时往 message 表插入一条"待接单"消息，供消息中心展示
+        com.sky.entity.Message message = com.sky.entity.Message.builder()
+                .content("您有新的待接单订单，订单号：" + orders.getNumber() + "，请及时处理")
+                .details("{\"orderId\":" + orders.getId() + "}")
+                .type(1)
+                .isRead(0)
+                .createTime(LocalDateTime.now())
+                .build();
+        messageMapper.insert(message);
+
         return buildMockPaymentVO();
     }
 
@@ -174,6 +188,96 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return new PageResult(pageResult.getTotal(), pageResult.getRecords());
+    }
+
+    /**
+     * 用户查询订单详情（含订单明细）
+     * 先校验订单属于当前用户，避免越权查看他人订单
+     */
+    @Override
+    public OrderVO userOrderDetail(Long id) {
+        Orders orders = orderMapper.selectById(id);
+        if (orders == null) {
+            throw new OrderBusinessException("订单不存在");
+        }
+        // 越权校验：只能查看自己的订单
+        if (!orders.getUserId().equals(UserContext.getCurrentId())) {
+            throw new OrderBusinessException("无权查看该订单");
+        }
+
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(orders, orderVO);
+
+        LambdaQueryWrapper<OrderDetail> detailWrapper = new LambdaQueryWrapper<>();
+        detailWrapper.eq(OrderDetail::getOrderId, id);
+        List<OrderDetail> orderDetailList = orderDetailMapper.selectList(detailWrapper);
+        orderVO.setOrderDetailList(orderDetailList);
+
+        // 拼接菜品摘要，如：鱼香肉丝x2,宫保鸡丁x1
+        String orderDishes = orderDetailList.stream()
+                .map(d -> d.getName() + "x" + d.getNumber())
+                .collect(Collectors.joining(","));
+        orderVO.setOrderDishes(orderDishes);
+
+        return orderVO;
+    }
+
+    /**
+     * 用户再来一单：把历史订单的菜品重新加入购物车
+     * 思路：查出原订单的明细，转成购物车记录插入（数量、口味、价格都照搬）
+     */
+    @Override
+    public void repetition(Long id) {
+        Orders orders = orderMapper.selectById(id);
+        if (orders == null) {
+            throw new OrderBusinessException("订单不存在");
+        }
+        // 越权校验：只能操作自己的订单
+        if (!orders.getUserId().equals(UserContext.getCurrentId())) {
+            throw new OrderBusinessException("无权操作该订单");
+        }
+
+        // 查出原订单的菜品明细
+        LambdaQueryWrapper<OrderDetail> detailWrapper = new LambdaQueryWrapper<>();
+        detailWrapper.eq(OrderDetail::getOrderId, id);
+        List<OrderDetail> orderDetailList = orderDetailMapper.selectList(detailWrapper);
+        if (orderDetailList == null || orderDetailList.isEmpty()) {
+            throw new OrderBusinessException("订单明细为空，无法再来一单");
+        }
+
+        Long userId = UserContext.getCurrentId();
+        // 把每个明细转成购物车记录重新加入
+        for (OrderDetail detail : orderDetailList) {
+            ShoppingCart shoppingCart = new ShoppingCart();
+            BeanUtils.copyProperties(detail, shoppingCart);
+            shoppingCart.setId(null);          // 生成新的主键
+            shoppingCart.setUserId(userId);    // 归属当前用户
+            shoppingCart.setCreateTime(LocalDateTime.now());
+            shoppingCartMapper.insert(shoppingCart);
+        }
+    }
+
+    /**
+     * 用户催单：通过 WebSocket 向管理端推送一条催单消息
+     */
+    @Override
+    public void reminder(Long id) {
+        Orders orders = orderMapper.selectById(id);
+        if (orders == null) {
+            throw new OrderBusinessException("订单不存在");
+        }
+        // 越权校验：只能催自己的订单
+        if (!orders.getUserId().equals(UserContext.getCurrentId())) {
+            throw new OrderBusinessException("无权操作该订单");
+        }
+
+        // 组装催单消息并推送给管理端页面
+        Map map = new HashMap<>();
+        map.put("type", 4);                                  // 4 = 催单类型
+        map.put("orderId", orders.getId());
+        map.put("content", "订单号：" + orders.getNumber());
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
     }
 
     /**
@@ -325,6 +429,19 @@ public class OrderServiceImpl implements OrderService {
         Orders orders = Orders.builder()
                 .id(id)
                 .status(Orders.DELIVERY_IN_PROGRESS)
+                .build();
+        orderMapper.updateById(orders);
+    }
+
+    /**
+     * 完成订单：将派送中订单置为已完成，并记录送达时间
+     */
+    @Override
+    public void complete(Long id) {
+        Orders orders = Orders.builder()
+                .id(id)
+                .status(Orders.COMPLETED)
+                .deliveryTime(LocalDateTime.now())
                 .build();
         orderMapper.updateById(orders);
     }

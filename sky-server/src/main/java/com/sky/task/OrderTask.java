@@ -47,12 +47,13 @@ public class OrderTask {
     /**
      * 处理一直处在派送中的订单
      */
-    @Scheduled(cron = "10 * * * * ?")
+    @Scheduled(cron = "0 0,15,30,45 * * * ?")
     public void processDeliveryOrders() {
         log.info("处理一直处在派送中的订单...");
         LambdaQueryWrapper<Orders> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Orders::getStatus, Orders.DELIVERY_IN_PROGRESS);
-        queryWrapper.gt(Orders::getOrderTime, java.time.LocalDateTime.now().minusSeconds(1));
+        // 已超过预计送达时间仍未完成 → 自动置为已完成
+        queryWrapper.lt(Orders::getEstimatedDeliveryTime, java.time.LocalDateTime.now().plusMinutes(5));
 
         List<Orders> ordersList = orderMapper.selectList(queryWrapper);
 
